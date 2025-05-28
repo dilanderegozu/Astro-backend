@@ -1,6 +1,7 @@
 const User = require("../models/user.model");
 const { getZodiacSign } = require("../utils/helper");
 const utils = require("../utils/index");
+const { sendMessage } = require("../services/telegram.service");
 
 /*
 create
@@ -38,9 +39,20 @@ exports.createUser = async (req) => {
 
     await user.save();
 
-    // const token = utils.helper.createToken(user._id, user.name);
+    const token = utils.helper.createToken(user._id, user.name);
+    const total_user = await User.countDocuments();
+    await sendMessage(`🎉 *Yeni Kullanıcı Kaydı!* 🎉
 
-    // return { user, token };
+👤 *İsim Soyisim:* ${name} ${surname}
+📧 *E-posta:* ${email}
+✨ *Burç:* ${zodiacSign}
+
+🚀 *Toplam Kullanıcı Sayısı:* ${total_user}
+
+🌟 Hoş geldin aramıza! 🎊
+`);
+
+    return { user, token };
   } catch (error) {
     throw new Error(error.message || error);
   }
@@ -54,7 +66,9 @@ exports.loginUser = async (req) => {
     if (!user) {
       throw new Error("Kullanıcı bilgileri yanlış");
     }
-    return user;
+    const token = utils.helper.createToken(user._id, user.name);
+
+    return { user, token };
   } catch (error) {
     throw new Error(error);
   }
@@ -80,20 +94,38 @@ exports.changePassword = async (req, res) => {
     throw new Error(error);
   }
 };
-
 exports.deleteUser = async (req) => {
   try {
     const { userId } = req.params;
     const user = await User.findById(userId);
+
     if (!user) {
       throw new Error("Kullanıcı bulunamadı");
     }
+
+    console.log("Kullanıcı bulundu", user.name);
+
     await User.findByIdAndDelete(userId);
+    const totalUsers = await User.countDocuments();
+
+    await sendMessage(
+      `⚠️ *Kullanıcı Silindi!* ⚠️
+
+👤 *İsim Soyisim:* ${user.name} ${user.surname}
+📧 *E-posta:* ${user.email}
+
+📉 *Güncel Toplam Kullanıcı:* ${totalUsers}
+
+🗑️Kullanıcımız aramızdan ayrıldı, yine bekleriz! 💙
+`
+    );
+
     return "Kullanıcı başarılı şekilde silindi";
   } catch (error) {
-    throw new Error(error);
+    throw new Error(error.message || error);
   }
 };
+
 
 exports.getAllUser = async () => {
   try {
@@ -122,3 +154,4 @@ exports.updateUserInfo = async (req) => {
     throw new Error(error.message);
   }
 };
+
