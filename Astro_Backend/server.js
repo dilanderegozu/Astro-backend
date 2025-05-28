@@ -1,7 +1,7 @@
 const express = require("express");
 const db = require("./db/index");
 const configs = require("./configs/index");
-const { zodiacRouter, userRouter, blogRouter,compatibilityRouter } = require("./routers/index");
+const { zodiacRouter, userRouter, blogRouter,compatibilityRouter ,tarotRouter} = require("./routers/index");
 const middlewares = require("./middlewares/index");
 
 
@@ -13,12 +13,13 @@ configs.serverConfig.initialServerConfig();
 const PORT = process.env.PORT || 3000;
 
 app.use(middlewares.loggerMiddleware);
-app.use(middlewares.authMiddleware);
+// app.use(middlewares.authMiddleware);
 
 app.use("/zodiac", zodiacRouter);
 app.use("/user", userRouter);
 app.use("/blog", blogRouter);
 app.use("/compatibility", compatibilityRouter);
+app.use("/tarot",tarotRouter)
 
 db.mongoConnect()
   .then(() => {
